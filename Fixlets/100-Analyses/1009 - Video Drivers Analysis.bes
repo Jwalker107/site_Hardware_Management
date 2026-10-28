@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>Video Drivers Analysis</Title>
+		<Description><![CDATA[<P>3/23/2018 - Added Relevance 3 to only&nbsp;target TS workstations - T. Fiebig </P>
+<P>4/10/2018 - Removed relevance limiting to TS workstations.&nbsp; Added "Video Driver Versions" property&nbsp;- J. Walker</P>]]></Description>
+		<Relevance>windows of operating system</Relevance>
+		<Relevance>if exists property "in proxy agent context" then not in proxy agent context else true</Relevance>
+		<Source>Internal</Source>
+		<SourceReleaseDate>2016-02-29</SourceReleaseDate>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 13 Mar 2025 21:40:02 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<Property Name="Video Card Device Name and Driver Version" ID="1" EvaluationPeriod="P1D"><![CDATA[unique values of ((if exist value "DriverDesc" of it then value "DriverDesc" of it as string as trimmed string else "<no description>") & " " & (if exist value "DriverVersion" of it then value "DriverVersion" of it as string as trimmed string else "<no driver version>") & " " & (if exists value "DriverDate" of it then "(" & value "DriverDate" of it as string as trimmed string & "}"else "(<no driver date>)" )) of keys whose (name of it != "Properties" and exists values ("DriverDesc";"DriverVersion";"DriverDate") of it) of key "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E968-E325-11CE-BFC1-08002BE10318}" of native registry]]></Property>
+		<Property Name="Number of distinct video card models" ID="2" EvaluationPeriod="P1D"><![CDATA[number of unique values of ((if exist value "DriverDesc" of it then value "DriverDesc" of it as string as trimmed string else "<no description>") & " " & (if exist value "DriverVersion" of it then value "DriverVersion" of it as string as trimmed string else "<no driver version>")) of keys whose (name of it != "Properties" and exists values ("DriverDesc";"DriverVersion";"DriverDate") of it)of key "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E968-E325-11CE-BFC1-08002BE10318}" of native registry]]></Property>
+		<Property Name="Video Card Device Name" ID="3" EvaluationPeriod="P1D"><![CDATA[unique values of ((if exist value "DriverDesc" of it then value "DriverDesc" of it as string as trimmed string else "<no description>") ) of keys whose (name of it != "Properties" and exists values ("DriverDesc";"DriverVersion";"DriverDate") of it) of key "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E968-E325-11CE-BFC1-08002BE10318}" of native registry]]></Property>
+		<Property Name="Video Driver Versions" ID="4" EvaluationPeriod="P1D"><![CDATA[unique values of ((if exist value "DriverVersion" of it then value "DriverVersion" of it as string as trimmed string else "<no driver version>") & " " & (if exists value "DriverDate" of it then "(" & value "DriverDate" of it as string as trimmed string & ")"else "(<no driver date>)" )) of keys whose (name of it != "Properties" and exists values ("DriverVersion";"DriverDate") of it) of key "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E968-E325-11CE-BFC1-08002BE10318}" of native registry]]></Property>
+		<Property Name="Video Driver Provider Names" ID="5" EvaluationPeriod="P1D">unique values of (values "ProviderName" of keys of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}" of registry as string)</Property>
+		<Property Name="Video Graphics Device Service Names" ID="6" EvaluationPeriod="P1D">unique values of (values "Service" of keys whose (value "ClassGuid" of it as string as lowercase = "{4d36e968-e325-11ce-bfc1-08002be10318}") of keys of keys of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum" of registry as string)</Property>
+	</Analysis>
+</BES>

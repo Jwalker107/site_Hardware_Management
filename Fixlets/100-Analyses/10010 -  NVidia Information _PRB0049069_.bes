@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>NVidia Information (PRB0049069)</Title>
+		<Description><![CDATA[<P>Retrieves various properties of NVidia drivers and attached devices.</P>
+<P>&nbsp;</P>
+<P><A href="https://github.com/CHEF-KOCH/nVidia-code-samples/blob/master/setEDID.ps1"><FONT color=#0066cc>https://github.com/CHEF-KOCH/nVidia-code-samples/blob/master/setEDID.ps1</FONT></A></P>
+<P><A href="https://github.com/CHEF-KOCH/nVidia-code-samples/blob/master/unfakeEDIDall.ps1"><FONT color=#0066cc>https://github.com/CHEF-KOCH/nVidia-code-samples/blob/master/unfakeEDIDall.ps1</FONT></A></P>
+<P><A href="https://forum.bigfix.com/t/tip-binary-strings-wmi-nvidia/26271/2"><FONT color=#0066cc>https://forum.bigfix.com/t/tip-binary-strings-wmi-nvidia/26271/2</FONT></A></P><U><A href="https://en.wikipedia.org/wiki/Extended_Display_Identification_Data#EDID_1.4_data_format"><FONT color=#0066cc>https://en.wikipedia.org/wiki/Extended_Display_Identification_Data#EDID_1.4_data_format</FONT></A></U>
+<P>EDID Data:&nbsp; Through reverse engineering,&nbsp;it appears that NVidia's "EdidLockData" registry key is formatted as&nbsp;one lone hexadecimal string representing the EDID binary value.&nbsp; All&nbsp;defined EDIDs are present, and all undefined EDIDs are represented as zeros.</P>
+<UL>
+<LI>Each EDID value&nbsp;appears to be 1040 characters in length, starting with 16 characters that are not the monitor EDID but may represent the port or connection type on the video card; followed by 1024 characters representing the EDID value.&nbsp; The EDID value should always begin with the EDID header value <FONT size=2>00ffffffffffff00.</FONT>
+<LI><FONT size=2>This represents 8 bytes of header followed by 512 bytes of EDID data.</FONT></LI></UL>]]></Description>
+		<Relevance>windows of operating system AND (if exists property "in proxy agent context" then not in proxy agent context else true)</Relevance>
+		<Relevance>exists wmis "ROOT\CIMV2\NV"</Relevance>
+		<Source>Internal</Source>
+		<SourceReleaseDate>2017-10-26</SourceReleaseDate>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 13 Mar 2025 21:40:02 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<Property Name="Temperature - NVidia NVWMI (Celsius)" ID="1" EvaluationPeriod="PT15M">unique values of integer values of selects "temperature FROM ThermalProbe" of wmis "ROOT\CIMV2\NV"</Property>
+		<Property Name="Temperature - NVidia NVWMI (Farenheit)" ID="2" EvaluationPeriod="PT15M">(it * "1.8" as floating point + 32 as floating point) of unique values of integer values of selects "temperature FROM ThermalProbe" of wmis "ROOT\CIMV2\NV"</Property>
+		<Property Name="Temperature - NVidia NVWMI (Celsius) - Combined" ID="3" EvaluationPeriod="PT15M">concatenation ";" of (unique values of integer values of selects "temperature FROM ThermalProbe" of wmis "ROOT\CIMV2\NV" as string)</Property>
+		<Property Name="EDIDLockData Exists - NVidia Driver" ID="4" EvaluationPeriod="PT6H">exists values "EdidLockData" whose (it as string != regex ("^[0]*$"))of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\DisplayDatabase" of native registry as string</Property>
+		<Property Name="Display Adapter Type" ID="6" EvaluationPeriod="PT1H">(tuple string items ( (it + 2) of (integer values of selects "VideoOutputTechnology FROM WmiMonitorConnectionParams" of wmis "root\wmi") ) of "UNINITIALIZED, OTHER, HD15, SVIDEO, COMPOSITE_VIDEO, COMPONENT_VIDEO, DVI, HDMI, LVDS, D_JPN, SDI, DISPLAYPORT_EXTERNAL, DISPLAYPORT_EMBEDDED, UDI_EXTERNAL, UDI_EMBEDDED, SDTVDONGLE, MIRACAST, UNKNOWN, https://msdn.microsoft.com/en-us/library/ff546605.aspx")</Property>
+		<Property Name="EDIDLockData Value Count - NVidia Driver" ID="7" EvaluationPeriod="PT6H">number of substrings ((it * 1040, 1040) of ((integers in (0 ,  (length of it / 1040) - 1))) of it) whose (exists characters whose (it != "0") of it)  of (values "EDIDLockData" of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\DisplayDatabase" of registry as string) </Property>
+		<Property Name="EDIDLockData Values - NVidia Driver" ID="8" EvaluationPeriod="PT6H">substrings ((it * 1040, 1040) of ((integers in (0 ,  (length of it / 1040) - 1))) of it) whose (exists characters whose (it != "0") of it)  of (values "EDIDLockData" of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\nvlddmkm\DisplayDatabase" of registry as string) </Property>
+	</Analysis>
+</BES>

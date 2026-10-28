@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>Hardware DMI Information</Title>
+		<Description>Retrieves a number of available hardware properties via DMI </Description>
+		<Relevance>if exists property "in proxy agent context" then not in proxy agent context else true</Relevance>
+		<Source>Internal</Source>
+		<SourceReleaseDate>2017-10-12</SourceReleaseDate>
+		<MIMEField>
+			<Name>x-bfsync-source-actionsite</Name>
+			<Value>http://BES-Dev-Root:52311/cgi-bin/bfgather.exe/actionsite</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>x-bfsync-source-modification-time</Name>
+			<Value>Tue, 15 Nov 2022 16:21:30 +0000</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>x-bfsync-source-id</Name>
+			<Value>7050</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 02 Feb 2023 15:24:42 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<Property Name="system enclosure dmi" ID="1" EvaluationPeriod="P30D">types of system_enclosure_or_chassiss of dmi</Property>
+		<Property Name="dmi bios vendor" ID="2" EvaluationPeriod="P30D">vendors of bios_informations of dmi</Property>
+		<Property Name="dmi product name" ID="3" EvaluationPeriod="P2D">product_names of system_informations of dmi</Property>
+		<Property Name="dmi bios version" ID="4" EvaluationPeriod="P1D"><![CDATA[(system_bios_major_release of it as string & "." & system_bios_minor_release of it as string) of bios_informations of dmi ]]></Property>
+		<Property Name="dmi bios version (full)" ID="5" EvaluationPeriod="P1D">bios_versions of bios_informations of dmi</Property>
+		<Property Name="dmi bios_release_date" ID="6" EvaluationPeriod="P1D">bios_release_dates of bios_informations of dmi</Property>
+		<Property Name="dmi bios_release_date (YYYY_MM_DD)" ID="7" EvaluationPeriod="P1D"><![CDATA[(parenthesized part 3 of it & "_" & parenthesized part 1 of it & "_" & parenthesized part 2 of it) of matches(regex("([[:digit:]]{2})/([[:digit:]]{2})/([[:digit:]]{4})")) of bios_release_dates of bios_informations of dmi]]></Property>
+		<Property Name="dmi bios_release_date (YYYY)" ID="8" EvaluationPeriod="P1D">(parenthesized part 3 of it) of matches(regex("([[:digit:]]{2})/([[:digit:]]{2})/([[:digit:]]{4})")) of bios_release_dates of bios_informations of dmi as integer</Property>
+		<Property Name="dmi bios_release_date month" ID="9" EvaluationPeriod="P1D">(parenthesized part 1 of it) of matches(regex("([[:digit:]]{2})/([[:digit:]]{2})/([[:digit:]]{4})")) of bios_release_dates of bios_informations of dmi as integer</Property>
+		<Property Name="dmi manufacturer" ID="13" EvaluationPeriod="P7D">manufacturer of system_information of dmi</Property>
+		<Property Name="dmi family" ID="14" EvaluationPeriod="P7D">family of system_information of dmi</Property>
+		<Property Name="dmi serial number" ID="15" EvaluationPeriod="P7D">serial_number of system_information of dmi</Property>
+		<Property Name="dmi sku number" ID="16" EvaluationPeriod="P7D">sku_number of system_information of dmi</Property>
+	</Analysis>
+</BES>
