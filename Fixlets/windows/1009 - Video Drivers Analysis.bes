@@ -6,7 +6,7 @@
 <P>4/10/2018 - Removed relevance limiting to TS workstations.&nbsp; Added "Video Driver Versions" property&nbsp;- J. Walker</P>]]></Description>
 		<Relevance>windows of operating system</Relevance>
 
-		<Relevance>if exists property "in proxy agent context" then not in proxy agent context else true</Relevance>
+
 		<Source>Internal</Source>
 		<SourceReleaseDate>2016-02-29</SourceReleaseDate>
 		<MIMEField>

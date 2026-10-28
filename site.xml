@@ -7,7 +7,7 @@
 <Site>
   <Relevance>
     <![CDATA[
-      (if exists property "in proxy agent context" then not in proxy agent context else True)
+      windows of operating system
     ]]>
   </Relevance>
 </Site>
