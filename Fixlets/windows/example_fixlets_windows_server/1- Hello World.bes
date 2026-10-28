@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
 	<Fixlet>
-		<Title>Hello, World!</Title>
+		<Title>Goodbye, World!</Title>
 		<Description><![CDATA[<P>Hello, World!</P>]]></Description>
 		<Relevance>1=1</Relevance>
 		<Category>Test</Category>
