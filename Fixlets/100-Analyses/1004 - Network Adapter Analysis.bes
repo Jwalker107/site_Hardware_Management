@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>Network Adapter Analysis</Title>
+		<Description><![CDATA[<P>This Analysis creates properties to track the MAC addresses of network adapters in the system.&nbsp; This retrieves MAC addresses for Windows, Linux, AIX, and Mac.</P>
+<P>Initial intent is to create properties that can be used to identify duplicate machine identities in BigFix.&nbsp; Systems that have identical MAC address lists can indicate one of several conditions:</P>
+<UL>
+<LI>A system that has been cloned, reimaged, duplicated, or reset; in which case an obsolete instance of the computer account may exist in BigFix, and should be cleaned up.
+<LI>A system that has been repurposed (for instance, converted from Windows to Linux or vice-versa), leaving a defunct computer account in BigFix that should be cleaned up.
+<LI>A dual-boot system, for instance a single piece of hardware with multiple OSes installed, that may toggle back-and-forth between functions.&nbsp; This is commonly done in Training Systems.&nbsp; In this case, both computer accounts remain valid and should be preserved.</LI></UL>]]></Description>
+		<Relevance>if exists property "in proxy agent context" then not in proxy agent context else true</Relevance>
+		<Source>Internal</Source>
+		<SourceReleaseDate>2017-07-19</SourceReleaseDate>
+		<MIMEField>
+			<Name>x-bfsync-source-actionsite</Name>
+			<Value>http://BES-Dev-Root:52311/cgi-bin/bfgather.exe/actionsite</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>x-bfsync-source-modification-time</Name>
+			<Value>Tue, 15 Nov 2022 16:21:29 +0000</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>x-bfsync-source-id</Name>
+			<Value>7028</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 02 Feb 2023 15:24:34 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<Property Name="Hardware MAC Addresses" ID="1" EvaluationPeriod="P7D">unique values of (if (exists true whose (if true then in proxy agent context else false)) then nothing else (if (windows of operating system) then (mac addresses of adapters whose (not loopback of it and not tunnel of it) of network) else if (unix of operating system) then (mac addresses of ip interfaces whose (not loopback of it and exists mac address of it) of network) else if (mac of operating system) then (mac addressses of link interfaces whose (exists mac address of it) of network) else nothing))</Property>
+		<Property Name="Hardware MAC Addresses - All" ID="2" EvaluationPeriod="P7D">concatenation ";" of unique values of (if (exists true whose (if true then in proxy agent context else false)) then nothing else (if (windows of operating system) then (mac addresses of adapters whose (not loopback of it and not tunnel of it) of network) else if (unix of operating system) then (mac addresses of ip interfaces whose (not loopback of it and exists mac address of it) of network) else if (mac of operating system) then (mac addressses of link interfaces whose (exists mac address of it) of network) else nothing))</Property>
+	</Analysis>
+</BES>

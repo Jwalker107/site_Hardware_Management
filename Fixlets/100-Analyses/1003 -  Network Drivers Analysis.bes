@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>Network Drivers Analysis</Title>
+		<Description><![CDATA[&lt;enter a description of the analysis here&gt; ]]></Description>
+		<Relevance>windows of operating system AND (if exists property "in proxy agent context" then not in proxy agent context else true)</Relevance>
+		<Source>Internal</Source>
+		<SourceReleaseDate>2017-12-05</SourceReleaseDate>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 13 Mar 2025 21:40:02 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<Property Name="Network Driver Versions" ID="1" EvaluationPeriod="PT6H"><![CDATA[(value "DriverDesc" of it as string as trimmed string & " " & value "DriverVersion" of it as string as trimmed string)of keys whose (exists keys "Ndi\Params" of it) of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}" of native registry]]></Property>
+		<Property Name="Network Interface Parameters by NIC" ID="2" EvaluationPeriod="PT6H">(value "DriverDesc" of parent key of it, name of it, it, (if exists (it,  keys of keys "Ndi\Params" of parent key of it) whose (name of item 1 of it = name of item 0 of it and exists keys "Enum" of item 1 of it) then (items 1 of (it, values of keys "Enum" of keys of keys "Ndi\Params" of parent key of it) whose (name of parent key of parent key of item 1 of it = name of item 0 of it and name of item 1 of it = item 0 of it) as string) else "Not Described")) of values whose (name of it starts with "*") of keys whose (exists keys "Ndi\Params" of it) of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}" of native registry</Property>
+		<Property Name="Network Interface Parameters" ID="3" EvaluationPeriod="PT6H"><![CDATA[unique values of (item 0 of it as string & " " & item 1 of it as string & " " & item 2 of it as string) of (name of it, it, (if exists (it,  keys of keys "Ndi\Params" of parent key of it) whose (name of item 1 of it = name of item 0 of it and exists keys "Enum" of item 1 of it) then (items 1 of (it, values of keys "Enum" of keys of keys "Ndi\Params" of parent key of it) whose (name of parent key of parent key of item 1 of it = name of item 0 of it and name of item 1 of it = item 0 of it) as string) else "Not Described")) of values whose (name of it starts with "*") of keys whose (exists keys "Ndi\Params" of it) of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}" of native registry]]></Property>
+		<Property Name="Network Device Names" ID="4" EvaluationPeriod="PT6H">unique values of (value "DriverDesc" of it as string as trimmed string)of keys whose (exists keys "Ndi\Params" of it) of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}" of native registry</Property>
+		<Property Name="Network Speed/Duplex Setting" ID="5" EvaluationPeriod="PT6H"><![CDATA[( (value "*SpeedDuplex" of it as string as trimmed string | "<not present>") & " (" & value "DriverDesc" of it as string as trimmed string & ")") of keys whose (exists keys "Ndi\Params" of it and exists value "*IfType" whose (it as integer = 6) of it) of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4d36e972-e325-11ce-bfc1-08002be10318}" of native registry]]></Property>
+	</Analysis>
+</BES>

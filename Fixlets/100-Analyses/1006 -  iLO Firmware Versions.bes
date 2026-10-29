@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>iLO Firmware Versions</Title>
+		<Description><![CDATA[This Analysis should retrieve iLO Firmware Major Version and iLO Firmware Minor Version, where it is present.&nbsp; Based on the bios_information property from the dmi inspector. ]]></Description>
+		<Relevance>if exists property "in proxy agent context" then not in proxy agent context else true</Relevance>
+		<Relevance>exists property "embedded_controller_firmware_major_release"</Relevance>
+		<Source>Internal</Source>
+		<SourceReleaseDate>2017-09-06</SourceReleaseDate>
+		<MIMEField>
+			<Name>x-bfsync-source-actionsite</Name>
+			<Value>http://BES-Dev-Root:52311/cgi-bin/bfgather.exe/actionsite</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>x-bfsync-source-modification-time</Name>
+			<Value>Tue, 15 Nov 2022 16:21:29 +0000</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>x-bfsync-source-id</Name>
+			<Value>7032</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 02 Feb 2023 15:24:35 +0000</Value>
+		</MIMEField>
+		<Domain>SYST</Domain>
+		<Property Name="iLO Firmware Major Version" ID="1" EvaluationPeriod="P7D">embedded_controller_firmware_major_releases of bios_informations of dmi</Property>
+		<Property Name="iLO Firmware Minor Version" ID="2" EvaluationPeriod="P7D">embedded_controller_firmware_minor_releases of bios_informations of dmi</Property>
+		<Property Name="iLO Firmware Version" ID="3" EvaluationPeriod="P7D"><![CDATA[(embedded_controller_firmware_major_release of it as string & "." & embedded_controller_firmware_minor_release of it as string ) of bios_informations of dmi as version]]></Property>
+		<Property Name="ipmi specification revision" ID="4" EvaluationPeriod="P7D">ipmi_specification_revisions of ipmi_device_informations of dmi</Property>
+		<Property Name="ipmi interface type" ID="5" EvaluationPeriod="P7D">interface_types of ipmi_device_informations of dmi</Property>
+		<Property Name="dmi Product Name listed in HP iLO4 Firmware Listing" ID="6" EvaluationPeriod="P7D"><![CDATA[length of product_name of system_information of dmi > 5 AND exists ("HPE ProLiant BL660c Gen9 Server Blade ";"HPE ProLiant BL460c Gen9 Server Blade";"HPE ProLiant DL580 Gen9 Server";"HPE ProLiant DL560 Gen9 Server";"HPE ProLiant DL380 Gen9 Server";"HPE ProLiant DL360 Gen9 Server";"HPE ProLiant DL180 Gen9 Server";"HPE ProLiant DL160 Gen9 Server";"HPE ProLiant DL120 Gen9 Server";"HPE ProLiant DL80 Gen9 Server";"HPE ProLiant DL60 Gen9 Server";"HPE ProLiant DL20 Gen9 Server";"HPE ProLiant ML350 Gen9 Server";"HPE ProLiant ML150 Gen9 Server";"HPE ProLiant ML110 Gen9 Server";"HPE ProLiant ML30 Gen9 Server";"HPE ProLiant XL450 Gen9 Server";"HPE ProLiant XL750f Gen9 Server";"HPE ProLiant XL740f Gen9 Server";"HPE ProLiant XL730f Gen9 Server";"HPE ProLiant XL250a Gen9 Server";"HPE ProLiant XL230a Gen9 Server";"HPE ProLiant XL230b Gen9 Server";"HPE ProLiant XL190r Gen9 Server";"HPE ProLiant XL170r Gen9 Server";"HPE ProLiant WS460c Gen9 Graphics Server Blade";"HPE ProLiant EC200a Server";"HPE Synergy 480 Gen9 Compute Module";"HPE Synergy 620 Gen9 Compute Module";"HPE Synergy 660 Gen9 Compute Module";"HPE Synergy 680 Gen9 Compute Module";"HPE ProLiant BL660c Gen8 Server Blade";"HPE ProLiant BL465c Gen8 Server Blade";"HPE ProLiant BL460c Gen8 Server Blade";"HPE ProLiant BL420c Gen8 Server Blade";"HPE ProLiant DL580 Gen8 Server";"HPE ProLiant DL560 Gen8 Server";"HPE ProLiant DL385p Gen8 Server";"HPE ProLiant DL380p Gen8 Server";"HPE ProLiant DL380e Gen8 Server";"HPE ProLiant DL360p Gen8 Server";"HPE ProLiant DL360e Gen8 Server";"HPE ProLiant DL320e Gen8 v2 Server";"HPE ProLiant DL320e Gen8 Server";"HPE ProLiant DL160 Gen8 Server";"HPE ProLiant ML350e Gen8 Server";"HPE ProLiant ML350p Gen8 Server";"HPE ProLiant ML310e Gen8 v2 Server";"HPE ProLiant ML310e Gen8 Server";"HPE ProLiant SL4540 Gen8 Server";"HPE ProLiant SL210t Gen8 Server";"HPE ProLiant SL270s Gen8 Server";"HPE ProLiant SL270s Gen8 SE Server";"HPE ProLiant SL250s Gen8 Server";"HPE ProLiant SL230s Gen8 Server";"HPE ProLiant XL220a Gen8 Server";"HPE ProLiant MicroServer Gen8";"HPE ProLiant WS460c Gen8 Graphics Server Blade") whose (it contains product_name of system_information of dmi)]]></Property>
+	</Analysis>
+</BES>
