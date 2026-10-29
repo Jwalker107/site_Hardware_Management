@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>Hardware Inventory from JSON - Windows</Title>
+		<Description><![CDATA[<P>Reports the results of the Fixlet &quot;Collect Hardware Inventory to JSON - Windows&quot; from &lt;BES Client folder&gt;\__BESData\__Global\HardwareInventory\HardwareInventory.json, every hour: system, processors, memory, disks, every device with its driver, and the hardware issues found.</P>
+<P>Start with these properties:</P>
+<UL>
+<LI><B>Hardware Inventory - Collection Status</B>: OK, Partial (some parts failed, listed in Collection Errors), Error (nothing collected, or PowerShell did not finish), Not Collected (the Fixlet has not run), or an Error saying the file is not valid JSON.</LI>
+<LI><B>Hardware Inventory - Collection Errors</B>: one line per failed part, &quot;section: message&quot;.</LI>
+<LI><B>Hardware Inventory - Issue Count</B> and <B>Issues</B>: &quot;severity | category | name | detail&quot; for devices with a problem code, unhealthy disks, unsigned drivers and recent WHEA hardware errors. Severity is Error or Warning (a disabled device or an unsigned driver is a Warning).</LI>
+<LI><B>Hardware Inventory - Last Collected</B>: when the JSON was last written. The properties re-read the file every hour; the data is as fresh as the last run of the Fixlet.</LI></UL>
+<P>A property for a part that failed to collect shows an error; Collection Errors says why.</P>]]></Description>
+		<Relevance><![CDATA[windows of operating system]]></Relevance>
+		<Relevance><![CDATA[if exists property "in proxy agent context" then not in proxy agent context else true]]></Relevance>
+		<Source>Internal</Source>
+		<SourceID></SourceID>
+		<SourceReleaseDate>2026-10-29</SourceReleaseDate>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 29 Oct 2026 20:00:00 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<Property Name="Hardware Inventory - Collection Status" ID="1" EvaluationPeriod="PT1H"><![CDATA[if not exists files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client then "Not Collected" else (if (exists json of it | false) then ((value of key "Status" of json of it as string) | "Unknown") else "Error - HardwareInventory.json is not valid JSON") of file "HardwareInventory.json" of folder "HardwareInventory" of folder "__Global" of data folder of client]]></Property>
+		<Property Name="Hardware Inventory - Collection Errors" ID="2" EvaluationPeriod="PT1H"><![CDATA[((value of key "Section" of it as string) & ": " & (value of key "Message" of it as string)) of elements of value of key "Errors" of jsons of files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Property>
+		<Property Name="Hardware Inventory - Last Collected" ID="3" EvaluationPeriod="PT1H"><![CDATA[(modification time of it) of files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Property>
+		<Property Name="Hardware Inventory - Issue Count" ID="4" EvaluationPeriod="PT1H"><![CDATA[(value of key "IssueCount" of it as integer) of jsons of files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Property>
+		<Property Name="Hardware Inventory - Issues" ID="5" EvaluationPeriod="PT1H"><![CDATA[((value of key "Severity" of it as string) & " | " & (value of key "Category" of it as string) & " | " & (value of key "Name" of it as string) & " | " & (value of key "Detail" of it as string)) of elements of value of key "Issues" of jsons of files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Property>
+		<Property Name="Hardware Inventory - System" ID="6" EvaluationPeriod="PT1H"><![CDATA[((value of key "Manufacturer" of it as string) & " | " & (value of key "Model" of it as string) & " | BIOS " & (value of key "BiosVersion" of it as string) & " (" & (value of key "BiosReleaseDate" of it as string) & ")") of value of key "System" of jsons of files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Property>
+		<Property Name="Hardware Inventory - Serial Number" ID="7" EvaluationPeriod="PT1H"><![CDATA[(value of key "SerialNumber" of it as string) of value of key "System" of jsons of files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Property>
+		<Property Name="Hardware Inventory - Processors" ID="8" EvaluationPeriod="PT1H"><![CDATA[((value of key "Name" of it as string) & " | " & (value of key "Cores" of it as integer as string) & " cores, " & (value of key "LogicalProcessors" of it as integer as string) & " logical | " & (value of key "MaxClockMHz" of it as integer as string) & " MHz") of elements of value of key "Processors" of jsons of files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Property>
+		<Property Name="Hardware Inventory - Memory (MB)" ID="9" EvaluationPeriod="PT1H"><![CDATA[(value of key "TotalMB" of it as integer) of value of key "Memory" of jsons of files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Property>
+		<Property Name="Hardware Inventory - Disks" ID="10" EvaluationPeriod="PT1H"><![CDATA[((value of key "Model" of it as string) & " | " & (value of key "MediaType" of it as string) & " | " & (value of key "SizeGB" of it as integer as string) & " GB | " & (if (value of key "Health" of it as string) = "" then (value of key "Status" of it as string) else (value of key "Health" of it as string))) of elements of value of key "Disks" of jsons of files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Property>
+		<Property Name="Hardware Inventory - Device Count" ID="11" EvaluationPeriod="PT1H"><![CDATA[(value of key "DeviceCount" of it as integer) of jsons of files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Property>
+		<Property Name="Hardware Inventory - Devices and Drivers" ID="12" EvaluationPeriod="PT1H"><![CDATA[unique values of ((value of key "Name" of it as string) & " | " & (value of key "Class" of it as string) & " | " & (if (value of key "DriverVersion" of it as string) = "" then "<no driver>" else (value of key "DriverProvider" of it as string) & " | " & (value of key "DriverVersion" of it as string) & " | " & (value of key "DriverDate" of it as string) & " | " & (value of key "DriverInf" of it as string))) of elements of value of key "Devices" of jsons of files "HardwareInventory.json" of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Property>
+	</Analysis>
+</BES>
