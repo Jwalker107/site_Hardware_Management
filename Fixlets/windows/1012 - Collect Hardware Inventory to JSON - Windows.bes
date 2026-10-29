@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Fixlet>
+		<Title>Collect Hardware Inventory to JSON - Windows</Title>
+		<Description><![CDATA[<P>Runs PowerShell to collect the hardware inventory of this computer and saves it as JSON in <B>&lt;BES Client folder&gt;\__BESData\__Global\HardwareInventory\HardwareInventory.json</B>, where it persists between actions and site changes. The analysis &quot;Hardware Inventory from JSON - Windows&quot; reads it every hour.</P>
+<P>Collected:</P>
+<UL>
+<LI><B>System</B>: manufacturer, model, serial number, BIOS version and date.</LI>
+<LI><B>Processors</B>, <B>memory</B> (total and modules) and <B>disks</B> (model, size, media type, health).</LI>
+<LI><B>Devices</B>: every device Windows has enumerated, with its driver INF, service, provider, version, date and signature.</LI>
+<LI><B>Issues</B>: devices with a Device Manager problem code, disks that are not healthy, unsigned drivers, and WHEA hardware error events from the last 7 days.</LI>
+<LI><B>Errors</B>: any part of the collection that failed. The other parts are still saved and Status is <B>Partial</B>; Status is <B>Error</B> when nothing could be collected or PowerShell did not finish.</LI></UL>
+<P>This Fixlet is relevant when there is no result from the last day, or when the last result has Status Error. Deploy it as a policy action that reapplies whenever relevant, with a wait between reapplications (for example 1 hour), so a computer where collection keeps failing does not retry on every evaluation cycle. A run that ends with Status Error leaves the Fixlet relevant, so the action reports Failed.</P>
+<P>Runs 64-bit Windows PowerShell 5.1 or later as SYSTEM, typically in under a minute; it is stopped after 15 minutes.</P>]]></Description>
+		<Relevance><![CDATA[windows of operating system]]></Relevance>
+		<Relevance><![CDATA[if exists property "in proxy agent context" then not in proxy agent context else true]]></Relevance>
+		<Relevance><![CDATA[exists (it as string as version) whose (it >= "5.1") of values "PowerShellVersion" of keys "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\PowerShell\3\PowerShellEngine" of native registry]]></Relevance>
+		<Relevance><![CDATA[not exists files "HardwareInventory.json" whose (now - modification time of it < 1 * day AND ((value of key "Status" of json of it as string != "Error") | false)) of folders "HardwareInventory" of folders "__Global" of data folders of client]]></Relevance>
+		<Category>Hardware Inventory</Category>
+		<Source>Internal</Source>
+		<SourceID></SourceID>
+		<SourceReleaseDate>2026-10-29</SourceReleaseDate>
+		<SourceSeverity></SourceSeverity>
+		<CVENames></CVENames>
+		<SANSID></SANSID>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 29 Oct 2026 20:00:00 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<DefaultAction ID="Action1">
+			<Description>
+				<PreLink>Click </PreLink>
+				<Link>here</Link>
+				<PostLink> to collect the hardware inventory to JSON.</PostLink>
+			</Description>
+			<ActionScript MIMEType="application/x-Fixlet-Windows-Shell"><![CDATA[
+// Collect the hardware inventory and drivers as JSON.
+// Read by the analysis "Hardware Inventory from JSON - Windows".
+parameter "output_folder" = "{pathname of data folder of client}\__Global\HardwareInventory"
+parameter "script" = "{pathname of client folder of current site}\Get-HardwareInventory.ps1"
+
+// The collection script; every left curly brace in it is doubled, BigFix's escape for relevance substitution
+delete __createfile
+createfile until _END_OF_SCRIPT_
+<#
+.SYNOPSIS
+    Writes the hardware inventory of this computer (system, processors, memory,
+    disks, every device with its driver) and any hardware issues found to
+    HardwareInventory.json in OutputFolder.
+
+.DESCRIPTION
+    Run by the BigFix Fixlet "Collect Hardware Inventory to JSON - Windows";
+    read by the analysis "Hardware Inventory from JSON - Windows".
+
+    Each section is collected on its own: a section that fails is recorded in
+    Errors and the others are still written, with Status "Partial". Status is
+    "OK" when every section was collected and "Error" when none was.
+
+    Issues lists hardware problems found: devices Windows reports a problem
+    code for, physical disks that are not healthy, disk drives whose status is
+    not OK, and WHEA hardware error events from the last 7 days.
+
+    The JSON is written under a temp name and then moved into place, so the
+    analysis never reads a partial file. String fields are "" (never null) so
+    the analysis relevance can read every field as a string.
+
+    Exit codes: 0 = JSON written, Status OK or Partial
+                1 = JSON written, Status Error
+                2 = the JSON could not be written
+#>
+param(
+    [Parameter(Mandatory = $true)][string]$OutputFolder
+)
+
+$ErrorActionPreference = 'Stop'
+$jsonPath = [System.IO.Path]::Combine($OutputFolder, 'HardwareInventory.json')
+$tmpPath = "$jsonPath.tmp"
+# Windows PowerShell 5.1 "-Encoding utf8" writes a BOM; write UTF-8 without one
+$utf8NoBom = New-Object -TypeName System.Text.UTF8Encoding -ArgumentList $false
+$errors = New-Object -TypeName System.Collections.Generic.List[object]
+$issues = New-Object -TypeName System.Collections.Generic.List[object]
+$sectionsOk = 0
+
+# Device Manager problem codes (CM_PROB_*) worth naming; others report the number only
+$problemText = @{{
+    1  = 'not configured correctly'
+    3  = 'driver may be corrupted or the system is low on memory'
+    10 = 'device cannot start'
+    12 = 'not enough free resources'
+    14 = 'restart required'
+    18 = 'drivers must be reinstalled'
+    19 = 'registry configuration is incomplete or damaged'
+    21 = 'Windows is removing the device'
+    22 = 'device is disabled'
+    24 = 'device is not present or not working properly'
+    28 = 'drivers are not installed'
+    29 = 'disabled by firmware'
+    31 = 'device is not working properly'
+    32 = 'driver start type is disabled'
+    37 = 'driver initialization failed'
+    38 = 'previous driver instance still loaded'
+    39 = 'driver is corrupted or missing'
+    43 = 'device reported a problem and was stopped'
+    48 = 'driver blocked from starting'
+    52 = 'driver signature cannot be verified'
+}
+# Win32_PnPEntity also lists devices that are not plugged in now (code 45); they are not issues
+$ignoredProblemCodes = @(0, 45)
+# MSFT_PhysicalDisk enumerations
+$healthText = @{{ 0 = 'Healthy'; 1 = 'Warning'; 2 = 'Unhealthy'; 5 = 'Unknown' }
+$mediaText = @{{ 0 = 'Unspecified'; 3 = 'HDD'; 4 = 'SSD'; 5 = 'SCM' }
+
+function Get-UtcStamp
+{{
+    (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+}
+
+function Add-Issue([string]$Severity, [string]$Category, [string]$Name, [string]$Detail)
+{{
+    $issues.Add([pscustomobject]@{{
+        Severity = $Severity
+        Category = $Category
+        Name     = $Name
+        Detail   = $Detail
+    })
+}
+
+# Runs one section; a failure is recorded in Errors and returns $null so the other sections still run
+function Invoke-Section([string]$Section, [scriptblock]$Collect)
+{{
+    try
+    {{
+        $result = & $Collect
+        $script:sectionsOk++
+        return $result
+    }
+    catch
+    {{
+        $errors.Add([pscustomobject]@{{
+            Section = $Section
+            Message = ($_.Exception.Message -replace '\s+', ' ').Trim()
+        })
+        return $null
+    }
+}
+
+$system = Invoke-Section 'system' {{
+    $cs = Get-CimInstance -ClassName Win32_ComputerSystem
+    $bios = Get-CimInstance -ClassName Win32_BIOS
+    $biosDate = ''
+    if ($bios.ReleaseDate) {{ $biosDate = ([datetime]$bios.ReleaseDate).ToString('yyyy-MM-dd') }
+    [pscustomobject]@{{
+        Manufacturer    = [string]$cs.Manufacturer
+        Model           = [string]$cs.Model
+        SystemType      = [string]$cs.SystemType
+        SerialNumber    = ([string]$bios.SerialNumber).Trim()
+        BiosVendor      = [string]$bios.Manufacturer
+        BiosVersion     = [string]$bios.SMBIOSBIOSVersion
+        BiosReleaseDate = $biosDate
+    }
+}
+
+$processors = Invoke-Section 'processors' {{
+    @(foreach ($p in Get-CimInstance -ClassName Win32_Processor)
+    {{
+        [pscustomobject]@{{
+            Name              = ([string]$p.Name).Trim()
+            Manufacturer      = [string]$p.Manufacturer
+            Cores             = [int]$p.NumberOfCores
+            LogicalProcessors = [int]$p.NumberOfLogicalProcessors
+            MaxClockMHz       = [int]$p.MaxClockSpeed
+            Status            = [string]$p.Status
+        }
+    })
+}
+
+$memory = Invoke-Section 'memory' {{
+    $modules = @(Get-CimInstance -ClassName Win32_PhysicalMemory)
+    $total = 0L
+    foreach ($m in $modules) {{ $total += [long]$m.Capacity }
+    [pscustomobject]@{{
+        TotalMB     = [long]($total / 1MB)
+        ModuleCount = $modules.Count
+        Modules     = @(foreach ($m in $modules)
+        {{
+            [pscustomobject]@{{
+                Slot         = [string]$m.DeviceLocator
+                CapacityMB   = [long]([long]$m.Capacity / 1MB)
+                SpeedMHz     = [int]$m.Speed
+                Manufacturer = ([string]$m.Manufacturer).Trim()
+                PartNumber   = ([string]$m.PartNumber).Trim()
+            }
+        })
+    }
+}
+
+$disks = Invoke-Section 'disks' {{
+    # Health and media type come from the Storage namespace (Windows 8 / 2012 and later);
+    # without it the disks are still listed, with Health ""
+    $physical = @{{}
+    try
+    {{
+        foreach ($pd in Get-CimInstance -Namespace 'root\Microsoft\Windows\Storage' -ClassName MSFT_PhysicalDisk)
+        {{
+            $physical[[string]$pd.DeviceId] = $pd
+        }
+    }
+    catch
+    {{
+        $physical = @{{}
+    }
+    @(foreach ($d in Get-CimInstance -ClassName Win32_DiskDrive)
+    {{
+        $pd = $physical[[string]$d.Index]
+        $health = ''
+        $media = ''
+        if ($pd)
+        {{
+            $health = $healthText[[int]$pd.HealthStatus]
+            if (-not $health) {{ $health = "Code $($pd.HealthStatus)" }
+            $media = $mediaText[[int]$pd.MediaType]
+        }
+        $name = ([string]$d.Model).Trim()
+        if ($health -and $health -ne 'Healthy')
+        {{
+            Add-Issue -Severity 'Error' -Category 'Disk' -Name $name -Detail "physical disk health is $health"
+        }
+        if ($d.Status -and $d.Status -ne 'OK')
+        {{
+            Add-Issue -Severity 'Error' -Category 'Disk' -Name $name -Detail "disk drive status is $($d.Status)"
+        }
+        [pscustomobject]@{{
+            Index         = [int]$d.Index
+            Model         = $name
+            InterfaceType = [string]$d.InterfaceType
+            MediaType     = [string]$media
+            SizeGB        = [long]([long]$d.Size / 1GB)
+            Status        = [string]$d.Status
+            Health        = [string]$health
+            Firmware      = ([string]$d.FirmwareRevision).Trim()
+        }
+    })
+}
+
+$devices = Invoke-Section 'devices' {{
+    $drivers = @{{}
+    foreach ($sd in Get-CimInstance -ClassName Win32_PnPSignedDriver)
+    {{
+        if ($sd.DeviceID) {{ $drivers[$sd.DeviceID] = $sd }
+    }
+    # Every device Windows has enumerated, with its driver when one is installed
+    @(foreach ($e in Get-CimInstance -ClassName Win32_PnPEntity)
+    {{
+        $sd = $null
+        if ($e.PNPDeviceID) {{ $sd = $drivers[$e.PNPDeviceID] }
+        $driverInf = ''; $driverProvider = ''; $driverVersion = ''; $driverDate = ''; $driverSigned = ''
+        if ($sd)
+        {{
+            $driverInf = [string]$sd.InfName
+            $driverProvider = [string]$sd.DriverProviderName
+            $driverVersion = [string]$sd.DriverVersion
+            if ($sd.DriverDate) {{ $driverDate = ([datetime]$sd.DriverDate).ToString('yyyy-MM-dd') }
+            if ($null -ne $sd.IsSigned) {{ $driverSigned = [string]$sd.IsSigned }
+        }
+        $code = [int]$e.ConfigManagerErrorCode
+        $name = [string]$e.Name
+        if (-not $name) {{ $name = [string]$e.PNPDeviceID }
+        if ($ignoredProblemCodes -notcontains $code)
+        {{
+            $text = $problemText[$code]
+            if (-not $text) {{ $text = 'see Device Manager' }
+            # A disabled device is usually someone's choice, so it is a warning
+            $severity = 'Error'
+            if ($code -eq 22) {{ $severity = 'Warning' }
+            Add-Issue -Severity $severity -Category 'Device' -Name $name -Detail "problem code $code ($text)"
+        }
+        [pscustomobject]@{{
+            Name           = $name
+            Class          = [string]$e.PNPClass
+            Manufacturer   = [string]$e.Manufacturer
+            DeviceID       = [string]$e.PNPDeviceID
+            Status         = [string]$e.Status
+            ProblemCode    = $code
+            Service        = [string]$e.Service
+            DriverInf      = $driverInf
+            DriverProvider = $driverProvider
+            DriverVersion  = $driverVersion
+            DriverDate     = $driverDate
+            DriverSigned   = $driverSigned
+        }
+    })
+}
+
+$hardwareEvents = Invoke-Section 'hardware events' {{
+    # WHEA-Logger records corrected and fatal hardware errors (CPU, memory, PCIe)
+    $since = (Get-Date).AddDays(-7)
+    $found = @()
+    try
+    {{
+        $found = @(Get-WinEvent -FilterHashtable @{{ LogName = 'System'; ProviderName = 'Microsoft-Windows-WHEA-Logger'; StartTime = $since } -MaxEvents 500)
+    }
+    catch
+    {{
+        # Get-WinEvent throws when nothing matches; anything else is a real error
+        if ($_.FullyQualifiedErrorId -notlike 'NoMatchingEventsFound*') {{ throw }
+    }
+    $summary = @($found | Group-Object -Property Id | ForEach-Object {{
+        $last = ($_.Group | Sort-Object -Property TimeCreated -Descending | Select-Object -First 1)
+        [pscustomobject]@{{
+            EventId   = [int]$_.Name
+            Count     = [int]$_.Count
+            LevelName = [string]$last.LevelDisplayName
+            LastTime  = $last.TimeCreated.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+        }
+    })
+    foreach ($s in $summary)
+    {{
+        $severity = 'Warning'
+        if ($s.LevelName -eq 'Error' -or $s.LevelName -eq 'Critical') {{ $severity = 'Error' }
+        Add-Issue -Severity $severity -Category 'Hardware Event' -Name "WHEA-Logger event $($s.EventId)" -Detail "$($s.Count) in the last 7 days, last at $($s.LastTime)"
+    }
+    $summary
+}
+
+# Unsigned drivers are reported as issues too
+if ($devices)
+{{
+    foreach ($d in $devices | Where-Object {{ $_.DriverSigned -eq 'False' })
+    {{
+        Add-Issue -Severity 'Warning' -Category 'Driver' -Name $d.Name -Detail "unsigned driver $($d.DriverInf) $($d.DriverVersion)"
+    }
+}
+
+$status = 'OK'
+if ($errors.Count -gt 0) {{ $status = 'Partial' }
+if ($sectionsOk -eq 0) {{ $status = 'Error' }
+
+# A section's list comes back unrolled ($null, one object or an array); @($null) would
+# be a one-element array, so a failed or empty section becomes an empty JSON array
+function ConvertTo-List($Value)
+{{
+    if ($null -eq $Value) {{ return , @() }
+    return , @($Value)
+}
+$devices = ConvertTo-List $devices
+
+$result = [pscustomobject]@{{
+    SchemaVersion  = 1
+    Status         = $status
+    CollectedUtc   = Get-UtcStamp
+    ComputerName   = $env:COMPUTERNAME
+    Errors         = $errors.ToArray()
+    IssueCount     = $issues.Count
+    Issues         = $issues.ToArray()
+    System         = $system
+    Processors     = ConvertTo-List $processors
+    Memory         = $memory
+    Disks          = ConvertTo-List $disks
+    DeviceCount    = $devices.Count
+    Devices        = $devices
+    HardwareEvents = ConvertTo-List $hardwareEvents
+}
+
+try
+{{
+    if (-not (Test-Path -LiteralPath $OutputFolder)) {{ New-Item -ItemType Directory -Force -Path $OutputFolder | Out-Null }
+    $json = ConvertTo-Json -InputObject $result -Depth 5
+    # Windows PowerShell 5.1 writes & ' < > as & ' < >; write them as
+    # plain characters (valid JSON) so the file reads naturally. An even run of backslashes
+    # before \u is an escaped backslash, not part of the escape, and is kept as it is.
+    $json = [regex]::Replace($json, '(?<!\\)((?:\\\\)*)\\u(0026|0027|003c|003e)', {{
+        param($m)
+        $m.Groups[1].Value + [char][Convert]::ToInt32($m.Groups[2].Value, 16)
+    })
+    [System.IO.File]::WriteAllText($tmpPath, $json, $utf8NoBom)
+    Move-Item -LiteralPath $tmpPath -Destination $jsonPath -Force
+}
+catch
+{{
+    Remove-Item -LiteralPath $tmpPath -Force -ErrorAction SilentlyContinue
+    Write-Error -Message "Could not write $jsonPath : $($_.Exception.Message)" -ErrorAction Continue
+    exit 2
+}
+if ($status -eq 'Error') {{ exit 1 }
+exit 0
+_END_OF_SCRIPT_
+delete "{parameter "script"}"
+move __createfile "{parameter "script"}"
+
+action uses wow64 redirection {not x64 of operating system}
+override wait
+hidden=true
+timeout_seconds=900
+disposition=terminate
+wait "{pathname of system folder}\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "{parameter "script"}" -OutputFolder "{parameter "output_folder"}"
+parameter "exit_code" = "{exit code of action}"
+delete "{parameter "script"}"
+
+// Exit code 0 or 1: the script wrote the JSON. Anything else (PowerShell blocked, crashed or
+// stopped by the timeout, or the JSON could not be written): save an Error result so the
+// analysis reports it instead of the last collection
+if {parameter "exit_code" != "0" AND parameter "exit_code" != "1"}
+	if {not exists folder (parameter "output_folder")}
+		folder create "{parameter "output_folder"}"
+	endif
+	delete __createfile
+	createfile until _END_OF_RESULT_
+{{"SchemaVersion": 1, "Status": "Error", "CollectedUtc": "", "ComputerName": "{computer name}", "Errors": [{{"Section": "powershell", "Message": "powershell.exe exited with code {parameter "exit_code"} before writing the results"}], "IssueCount": 0, "Issues": [], "DeviceCount": 0, "Devices": [], "Processors": [], "Disks": [], "HardwareEvents": []}
+_END_OF_RESULT_
+	delete "{parameter "output_folder"}\HardwareInventory.json"
+	move __createfile "{parameter "output_folder"}\HardwareInventory.json"
+endif
+]]></ActionScript>
+		</DefaultAction>
+	</Fixlet>
+</BES>
