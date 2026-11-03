@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>BIOS Information - HP</Title>
+		<Description>Retrieves information stored by HP Bios Configuration Utility fixlet. </Description>
+		<Relevance>windows of operating system</Relevance>
+		<Relevance>if exists property "proxy agent context" then (not in proxy agent context) else true</Relevance>
+		<Relevance>exists values whose (it as string starts with "HP" or it as string starts with "Hewlett") of structures "system_information" of smbioses</Relevance>
+		<Source>Internal</Source>
+		<SourceReleaseDate>2014-01-29</SourceReleaseDate>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 13 Mar 2025 21:40:02 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<Property Name="Date retrieved" ID="1" EvaluationPeriod="P1D"><![CDATA[(if not exists file it then "N/A" else (year of it as string & "_" & month of it as two digits & "_" & day_of_month of it as two digits) of date(local time zone) of modification time of file it) of "c:\BigFixData\hpbiosinfo.txt"]]></Property>
+		<Property Name="Product Name" ID="2" EvaluationPeriod="P1D">(next line  of lines whose (it contains "Product Name") of file "c:\BigFixData\hpbiosinfo.txt") as trimmed string</Property>
+		<Property Name="SKU Number" ID="3" EvaluationPeriod="P1D">(if exists (lines of it) whose (it contains "SKU Number") then (next line of lines whose (it contains "SKU Number") of it as trimmed string) else "N/A") of file "c:\BigFixData\hpbiosinfo.txt"</Property>
+		<Property Name="Removable Media Boot" ID="5" EvaluationPeriod="P1D">first matches (regex "\*[^,]*") of substrings after "Removable Media Boot" of concatenation "," of lines of file "c:\BigFixData\hpbiosinfo.txt"</Property>
+		<Property Name="SATA Emulation" ID="6" EvaluationPeriod="P1D">first matches (regex "\*[^,]*") of substrings after "SATA Emulation" of concatenation "," of lines of file "c:\BigFixData\hpbiosinfo.txt"</Property>
+		<Property Name="UUID" ID="7" EvaluationPeriod="P1D">(next line  of lines whose (it contains "Enter UUID") of file "c:\BigFixData\hpbiosinfo.txt") as trimmed string</Property>
+		<Property Name="Wake on LAN" ID="8" EvaluationPeriod="P1D">first matches (regex "\*[^,]*") of substrings after "Wake on LAN" of concatenation "," of lines of file "c:\BigFixData\hpbiosinfo.txt"</Property>
+		<Property Name="HyperThreading" ID="9" EvaluationPeriod="P1D">first matches (regex "\*[^,]*") of substrings after "Hyper-Threading" of concatenation "," of lines of file "c:\BigFixData\hpbiosinfo.txt"</Property>
+		<Property Name="Legacy  Boot Order" ID="10" EvaluationPeriod="PT12H">concatenation "; " of substrings separated by "%0d%0a" of concatenation of substrings separated by "%09" of following text of first "Legacy Boot Order%0d%0a" of preceding text of first match (regex("%0d%0a[^%09][^%0d]*")) of following text of first "Legacy Boot Order" of concatenation "%0d%0a" of lines of file "c:\BigFixData\hpbiosinfo.txt"</Property>
+	</Analysis>
+</BES>

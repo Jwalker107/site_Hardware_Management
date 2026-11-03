@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>Monitor Analysis - Windows</Title>
+		<Description>In-work - retrieval of monitor parameters from Windows </Description>
+		<Relevance>windows of operating system</Relevance>
+		<Relevance>if exists property "in proxy agent context" then not in proxy agent context else true</Relevance>
+		<Source>Internal</Source>
+		<SourceReleaseDate>2015-09-24</SourceReleaseDate>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 13 Mar 2025 21:40:02 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<Property Name="(Model, SN, ManufactureDate) of EDID " ID="1" EvaluationPeriod="P7D"><![CDATA[unique values of ((it as trimmed string) of ( (hexadecimal string (first 24 of following texts of first "000000fc00" of it )) | "n/a") & ", " & ( (it as trimmed string) of (hexadecimal string (first 24 of following texts of first "000000ff00" of it ) ) | "n/a") & ", " & (it as string) of (hexadecimal integer (first 2 of following text of position 32 of it )/4) & "/" & (it as string) of (1990+(hexadecimal integer (first 2 of following text of position 34 of it ))) ) of unique values of (it as string) of values "EDID" of keys "Device Parameters" of keys of keys of keys "Enum\DISPLAY" of (keys "CurrentControlSet" of it;keys whose(name of it starts with "ControlSet") of it) of keys "HKEY_LOCAL_MACHINE\SYSTEM" of (x64 registries;x32 registries) ]]></Property>
+		<Property Name="Connected EDIDs" ID="8" EvaluationPeriod="P7D">unique values of (values "EDID" of keys "Device Parameters" of it as string) of keys whose (value "Class" of it as string = "Monitor" and exists key "Control" of it) of keys of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\DISPLAY" of native registry</Property>
+		<Property Name="EDID count" ID="9" EvaluationPeriod="P7D">number of unique values of (values "EDID" of keys "Device Parameters" of it as string) of keys whose (value "Class" of it as string = "Monitor" and exists key "Control" of it) of keys of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\DISPLAY" of native registry</Property>
+		<Property Name="Number of connected monitors" ID="10" EvaluationPeriod="P7D">number of (values "EDID" of keys "Device Parameters" of it as string) of keys whose (value "Class" of it as string = "Monitor" and exists key "Control" of it) of keys of keys "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\DISPLAY" of native registry</Property>
+		<Property Name="Monitor Refresh Rates" ID="11" EvaluationPeriod="PT1H">unique values of string values of selects "currentrefreshrate from Win32_videocontroller" of wmis</Property>
+	</Analysis>
+</BES>

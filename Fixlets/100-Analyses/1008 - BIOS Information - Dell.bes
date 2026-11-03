@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>BIOS Information - Dell</Title>
+		<Description><![CDATA[<P>Reports settings previously reported via Dell CCTK.</P>
+<P>To create data for this analysis, execute the task "Generate Dell BIOS Information".&nbsp; That Task will populate the text file c:\BigFixData\dellbiosinfo.txt with values that are retrieved by this analysis.</P>]]></Description>
+		<Relevance>windows of operating system</Relevance>
+		<Relevance>if exists property "proxy agent context" then (not in proxy agent context) else true</Relevance>
+		<Relevance>exists values whose (it as string as lowercase starts with "dell") of structures "system_information" of smbioses</Relevance>
+		<Source>Internal</Source>
+		<SourceReleaseDate>2014-02-04</SourceReleaseDate>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 13 Mar 2025 21:40:02 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<Property Name="Date Retrieved" ID="1" EvaluationPeriod="P1D"><![CDATA[(if not exists file it then "N/A" else (year of it as string & "_" & month of it as two digits & "_" & day_of_month of it as two digits) of date(local time zone) of modification time of file it) of "c:\BigFixData\dellbiosinfo.txt"]]></Property>
+		<Property Name="BIOS System Name" ID="2" EvaluationPeriod="P1D">key "sysname" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="Service Tag" ID="3" EvaluationPeriod="P1D">key "svctag" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="System ID" ID="4" EvaluationPeriod="P1D">key "sysid" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="Wake on LAN" ID="5" EvaluationPeriod="P1D">key "wakeonlan" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="Asset Tag" ID="6" EvaluationPeriod="P1D">key "asset" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="CPU Count" ID="7" EvaluationPeriod="P1D">key "cpucount" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="BIOS Version" ID="8" EvaluationPeriod="P1D">key "biosver" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="BIOS Date" ID="9" EvaluationPeriod="P1D">key "lastbiosupdate" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="Auto Power-On Days" ID="10" EvaluationPeriod="P1D">key "autoon" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="Auto Power-On Hour" ID="11" EvaluationPeriod="P1D">key "autoonhr" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="Auto Power-On Minute" ID="12" EvaluationPeriod="P1D">key "autoonmn" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="CPU Speed" ID="13" EvaluationPeriod="P1D">key "cpuspeed" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="Floppy" ID="14" EvaluationPeriod="P1D">key "floppy" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="Property Owner Tag" ID="15" EvaluationPeriod="P1D">key "propowntag" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="Standby State" ID="16" EvaluationPeriod="P1D">key "standbystate" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="SMART Reporting" ID="17" EvaluationPeriod="P1D">key "smarterrors" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="TPM state" ID="18" EvaluationPeriod="P1D">key "tpm" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="UUID" ID="19" EvaluationPeriod="P1D">key "uuid" of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+		<Property Name="dellbiosinfo.txt" ID="20" EvaluationPeriod="P1D">concatenation "; " of lines of file "c:\BigFixData\dellbiosinfo.txt"</Property>
+	</Analysis>
+</BES>

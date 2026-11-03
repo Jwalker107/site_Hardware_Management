@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>Intel AMT Detections</Title>
+		<Description><![CDATA[&lt;enter a description of the analysis here&gt; ]]></Description>
+		<Relevance>windows of operating system AND (if exists property "in proxy agent context" then not in proxy agent context else true)</Relevance>
+		<Source>Internal</Source>
+		<SourceReleaseDate>2017-05-18</SourceReleaseDate>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 13 Mar 2025 21:40:02 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<Property Name="LMS Service Present" ID="1" EvaluationPeriod="P1D">exists services whose (service name of it as lowercase = "lms")</Property>
+		<Property Name="LMS Service State" ID="2" EvaluationPeriod="P1D">states of services whose (service name of it as lowercase = "lms")</Property>
+		<Property Name="LMS Service Startup" ID="3" EvaluationPeriod="P1D">start types of services whose (service name of it as lowercase = "lms")</Property>
+		<Property Name="LMS Service Image Path" ID="4" EvaluationPeriod="P1D">image paths of services whose (service name of it as lowercase = "lms")</Property>
+	</Analysis>
+</BES>

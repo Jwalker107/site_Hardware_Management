@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BES xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="BES.xsd">
+	<Analysis>
+		<Title>Vulnerabilities - Intel SA 00075 - Windows</Title>
+		<Description><![CDATA[Learn more about this analysis online: <A href="https://bigfix.me/cdb/analysis/2998555">https://bigfix.me/cdb/analysis/2998555</A><BR><BR>
+<P>This Analysis provides the results for the the Intel SA 00075 Probe on a system to determine if it is vulnerable. </P>
+<P>Please use the Fixlet: <STRONG>Invoke - Intel SA 00075 Probe - Windows </STRONG>to populate results for a system. Please use Fixlet: <STRONG>Invoke - Intel SA 00075 Unprovision Active Management Technology - Windows </STRONG>and Fixlet: <STRONG>Invoke - Intel SA 00075 Remove Local Management Service - Windows </STRONG>to resolve the Vulnerability.</P>
+<P>A value of Vulnerable means your firmware version is vulnerable to the exploit. A value of Exposed means that you are vulnerable and the required processes for exploitation are currently exposed.</P>
+<P>For general information or to report issues with C3 Inventory content please visit GitHub here: <A href="https://github.com/strawgate/C3-Inventory">https://github.com/strawgate/C3-Inventory</A></P>
+<P><STRONG>NASA Updates:</STRONG></P>
+<UL>
+<LI><STRONG>2017-10-19 Jason Walker</STRONG>
+<UL>
+<LI><STRONG>Add raw result retrieval&nbsp;for "Vulnerable" and "Exposed" from registry, to handle Intel's updating of the format output with each tool release and help identify false-positive or false-negative results.</STRONG></LI></UL></LI></UL>
+<P><STRONG></STRONG>&nbsp;</P>]]></Description>
+		<Relevance>windows of operating system</Relevance>
+		<Relevance>(brand string of main processor as lowercase) contains "intel"</Relevance>
+		<MIMEField>
+			<Name>bigfixme-ID</Name>
+			<Value>2998555</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>bigfixme-modification-time</Name>
+			<Value>Fri, 12 May 2017 13:52:10 GMT</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>bigfixme-added-time</Name>
+			<Value>Fri, 12 May 2017 13:52:10 GMT</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>bigfixme-keywords</Name>
+			<Value></Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>bigfixme-versions-ids</Name>
+			<Value>2998551</Value>
+		</MIMEField>
+		<MIMEField>
+			<Name>x-fixlet-modification-time</Name>
+			<Value>Thu, 13 Mar 2025 21:40:02 +0000</Value>
+		</MIMEField>
+		<Domain>BESC</Domain>
+		<Property Name="Intel SA 00075 - Vulnerable - Windows" ID="1" EvaluationPeriod="PT1H">(if (it = 1) then ("Vulnerable") else ("Not Vulnerable")) of (values "Vulnerable" of keys "HKEY_LOCAL_MACHINE\SOFTWARE\Intel\Setup and Configuration Software\INTEL-SA-00075 Discovery Tool\ME Firmware Information" of x32 registry)</Property>
+		<Property Name="Intel SA 00075 - Exposed - Windows" ID="2" EvaluationPeriod="PT1H">(if (it = 1) then ("Exposed") else ("Not Exposed")) of (values "Exposed" of keys "HKEY_LOCAL_MACHINE\SOFTWARE\Intel\Setup and Configuration Software\INTEL-SA-00075 Discovery Tool\ME Firmware Information" of x32 registry)</Property>
+		<Property Name="Intel SA 00075 - Last Scan - Windows" ID="3" EvaluationPeriod="PT30M">values "Scan Date" of keys "HKEY_LOCAL_MACHINE\SOFTWARE\Intel\Setup and Configuration Software\INTEL-SA-00075 Discovery Tool" of x32 registry</Property>
+		<Property Name="Intel SA 00075 - Provisioning State - Windows" ID="4" EvaluationPeriod="PT1H">values "ME Provisioning State" of keys "HKEY_LOCAL_MACHINE\SOFTWARE\Intel\Setup and Configuration Software\INTEL-SA-00075 Discovery Tool\ME Firmware Information" of x32 registry</Property>
+		<Property Name="Intel SA 00075 - LMS State - Windows" ID="5" EvaluationPeriod="P1D">states of services "LMS" whose (display name of it contains "Local Management Service")</Property>
+		<Property Name="Intel SA 00075 - Vulnerable - Windows - Raw Result" ID="6" EvaluationPeriod="PT1H">(values "Vulnerable-Raw" of keys "HKEY_LOCAL_MACHINE\SOFTWARE\Intel\Setup and Configuration Software\INTEL-SA-00075 Discovery Tool\ME Firmware Information" of x32 registry)</Property>
+		<Property Name="Intel SA 00075 - Exposed - Windows - Raw Result" ID="7" EvaluationPeriod="PT1H">(values "Exposed-Raw" of keys "HKEY_LOCAL_MACHINE\SOFTWARE\Intel\Setup and Configuration Software\INTEL-SA-00075 Discovery Tool\ME Firmware Information" of x32 registry)</Property>
+	</Analysis>
+</BES>
